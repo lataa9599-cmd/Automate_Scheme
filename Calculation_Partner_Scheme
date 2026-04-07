@@ -1,0 +1,133 @@
+#This code has written for calculation to calculate automate scheme
+
+Attribute VB_Name = "Calculation"
+Option Explicit
+
+Sub Scheme_Cal()
+
+    Dim ws As Worksheet
+    Dim i As Long, lastRow As Long
+    Dim Tgt As Double, Ach As Double
+
+    Set ws = ThisWorkbook.Sheets("Scheme")
+
+    lastRow = ws.Cells.Find("*", SearchOrder:=xlByRows, _
+                            SearchDirection:=xlPrevious).Row
+    If lastRow < 4 Then Exit Sub
+
+    ' Clear old data
+    ws.Range("Q4:R" & lastRow).ClearContents
+    ws.Range("T4:U" & lastRow).ClearContents
+
+    For i = 4 To lastRow
+
+        If Trim(CStr(ws.Cells(i, "P").Value)) = "Qua" _
+           And IsNumeric(ws.Cells(i, "I").Value) _
+           And IsNumeric(ws.Cells(i, "J").Value) Then
+
+            Tgt = ws.Cells(i, "I").Value
+            Ach = ws.Cells(i, "J").Value
+
+            If Tgt = Ach Then
+                Select Case Tgt
+
+                    Case 4, 6, 7
+                        ws.Cells(i, "Q").Value = 1
+
+                    Case 12, 18, 30, 36
+                        ws.Cells(i, "Q").Value = Tgt / 6
+
+                    Case 8, 16, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80
+                    
+                        ws.Cells(i, "T").Value = Tgt \ 8
+
+                        If (Tgt Mod 8) = 4 Then
+                            ws.Cells(i, "U").Value = 1
+                        End If
+                        
+                    Case 38, 14, 22
+                        ws.Cells(i, "T").Value = Tgt \ 8
+                        
+                        If (Tgt Mod 8) = 6 Then
+                            ws.Cells(i, "Q") = 1
+                        End If
+                        
+                    Case 10
+                        ws.Cells(i, "Q").Value = Tgt \ 6
+                        
+                        If (Tgt Mod 6) = 4 Then
+                            ws.Cells(i, "U") = 1
+                        End If
+                                
+
+                End Select
+            End If
+            
+            If Ach > Tgt Then
+                ws.Cells(i, "R") = (Ach - Tgt) \ 3
+            End If
+            
+            If Tgt < Ach Then
+                Select Case Tgt
+                    Case 4, 6, 7
+                        ws.Cells(i, "Q").Value = 1
+                    
+                    Case 12, 18, 30, 36
+                        ws.Cells(i, "Q").Value = Tgt / 6
+
+                    Case 8, 16, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80
+                    
+                        ws.Cells(i, "T").Value = Tgt \ 8
+                        
+                    Case 38, 14, 22
+                        ws.Cells(i, "T").Value = Tgt \ 8
+                        
+                    
+                    End Select
+                End If
+                
+                    
+                    
+                If Ach > Tgt Then
+                
+                    Select Case Tgt
+                    
+                        Case 14
+                            ws.Cells(i, "Q").Value = 1
+                        Case 22
+                            ws.Cells(i, "Q").Value = 1
+                        Case 10
+                            ws.Cells(i, "Q").Value = 1
+                            ws.Cells(i, "U").Value = 1
+                            
+                        
+                    End Select
+                End If
+            
+            
+            If Trim(CStr(ws.Cells(i, "P").Value)) = "Qua" Then
+                With ws.Cells(i, "W")
+                    .Value = "Eligible For Scheme"
+                    .Font.Size = 10
+                    .HorizontalAlignment = xlCenter
+                End With
+                
+                
+            Else
+                ws.Cells(i, "W").ClearContents
+            End If
+            
+            
+            
+            
+            
+            
+
+        End If
+    Next i
+    
+MsgBox "Normal Scheme Done"
+
+End Sub
+
+
