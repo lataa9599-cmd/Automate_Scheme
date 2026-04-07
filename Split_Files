@@ -1,0 +1,86 @@
+#splite files after calculated scheme zone wise
+
+Sub Split_Schemes()
+
+Dim iRow As Long
+Dim SR As Worksheet, SW As Worksheet
+Dim ZLastrow As Long
+Dim wkb As Workbook
+Dim i As Long
+Dim SavePath As String, fileName As String, zone As String
+Dim VisibleRange As Range
+Dim Fullfile As String
+
+Set SR = ThisWorkbook.Sheets("SchemeRelease")
+Set SW = ThisWorkbook.Sheets("Setting")
+
+
+SW.Range("A:A").Clear
+iRow = SR.Cells(SR.Rows.Count, 1).End(xlUp).Row
+
+If iRow >= 4 Then
+    SR.Range("A4:A" & iRow).Copy
+    SW.Range("A1").PasteSpecial xlPasteValues
+    SW.Range("A1:A" & (iRow - 3)).RemoveDuplicates Columns:=1, Header:=xlNo
+End If
+
+ZLastrow = SW.Cells(SW.Rows.Count, 1).End(xlUp).Row
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+
+For i = 1 To ZLastrow
+    zone = Trim(SW.Range("A" & i).Value)
+    
+    If zone = "" Then GoTo NextZone
+    
+    ' Filter the data
+    If SR.AutoFilterMode Then SR.AutoFilterMode = False
+    SR.Rows(3).AutoFilter Field:=1, Criteria1:=zone
+    
+    ' Create new workbook
+    Set wkb = Workbooks.Add
+    
+  
+    SR.Rows("1:3").Copy
+    With wkb.Sheets(1).Range("A1")
+        .PasteSpecial xlPasteColumnWidths
+        .PasteSpecial xlPasteAll
+    End With
+    
+    ' Copy visible data
+    On Error Resume Next
+    Set VisibleRange = SR.Range("A4:A" & iRow).SpecialCells(xlCellTypeVisible).EntireRow
+    On Error GoTo 0
+    
+    If Not VisibleRange Is Nothing Then
+        VisibleRange.Copy Destination:=wkb.Sheets(1).Rows("4")
+    End If
+    
+    ' Save path and File handling
+    SavePath = "D:\Schems\Dec_2025_Scheme\"
+    ' Create folder if it doesn't exist (Optional safety)
+    If Dir(SavePath, vbDirectory) = "" Then MkDir SavePath
+    
+    fileName = Replace(zone, "/", "_")
+    Fullfile = SavePath & fileName & ".xlsx"
+    
+    ' Save and Close
+    On Error Resume Next
+    wkb.SaveAs Fullfile, FileFormat:=51
+    If Err.Number <> 0 Then
+        MsgBox "Error saving file for Zone '" & zone & "'. Check if path exists.", vbCritical
+    End If
+    On Error GoTo 0
+    wkb.Close SaveChanges:=False
+
+NextZone:
+    Set VisibleRange = Nothing
+Next i
+
+If SR.AutoFilterMode Then SR.AutoFilterMode = False
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+MsgBox "Split completed successfully", vbInformation
+
+End Sub
