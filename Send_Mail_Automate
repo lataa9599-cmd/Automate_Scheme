@@ -1,0 +1,84 @@
+# Splited file send email to Zonal head and Zonal Facilitar
+
+Option Explicit
+
+Sub Send_mail()
+
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+
+    Dim zone As String
+    Dim toMail As String
+    Dim toCC As String
+    Dim mailSub As String
+    Dim mailBody As String
+
+    Dim basePath As String
+    Dim fullPath As String
+
+    Set ws = ThisWorkbook.Sheets("Mail_Data")
+
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    Set OutApp = CreateObject("Outlook.Application")
+
+    For i = 4 To lastRow
+
+        '
+        zone = ws.Cells(i, "A").Value
+        zone = Application.WorksheetFunction.Trim(zone)
+        zone = Replace(zone, Chr(160), " ")
+        zone = Trim(zone)
+
+        toMail = Trim(ws.Cells(i, "B").Value)
+        toCC = Trim(ws.Cells(i, "D").Value)
+        mailSub = Trim(ws.Cells(i, "E").Value)
+        mailBody = ws.Cells(i, "F").Value
+
+        If zone = "" Or toMail = "" Then GoTo NextRow
+
+        
+        basePath = ws.Range("M6").Value
+        basePath = Replace(basePath, """", "")
+        basePath = Trim(basePath)
+
+        If Right(basePath, 1) <> "\" Then basePath = basePath & "\"
+
+      
+        fullPath = basePath & zone & ".xlsx"
+
+        
+        If Dir(fullPath) = "" Then
+            MsgBox "? Attachment not found!" & vbCrLf & _
+                   "Full path checked:" & vbCrLf & _
+                   fullPath, vbCritical
+            GoTo NextRow
+        End If
+
+        
+        Set OutMail = OutApp.CreateItem(0)
+
+        With OutMail
+            .To = toMail
+            .CC = toCC
+            .Subject = mailSub
+            .Body = mailBody
+            .Attachments.Add fullPath
+            .Send
+        End With
+
+        Set OutMail = Nothing
+
+NextRow:
+    Next i
+
+    MsgBox "? All zone-wise mails sent successfully!", vbInformation
+
+    Set OutApp = Nothing
+
+End Sub
+
+
